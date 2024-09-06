@@ -127,6 +127,19 @@ export default class PullRequestReview {
      * @returns {Promise<void>}
      */
     public async botPRs(): Promise<void> {
+        const maintainers:string[] = [];
+        await this.context.octokit.pulls.listReviews({
+            owner: this.context.payload.repository.owner.login,
+            repo: this.context.payload.repository.name,
+            pull_number: this.context.payload.pull_request.number
+        }).then((a) => {
+            a.data.forEach((data) => {
+                if (data.user?.login && !maintainers.includes(`@${data.user.login}`) && this.context.payload.review.user.login !== data.user.login && data.user.type.toLowerCase() !== "bot" && (data.author_association === "COLLABORATOR" || data.author_association === "MEMBER" || data.author_association === "OWNER")) {
+                    maintainers.push(`@${data.user.login}`);
+                }
+            });
+        });
+
         if (this.context.payload.sender.login === this.context.payload.repository.owner.login) {
             // Owner
             if (this.context.payload.review.state === "approved") {
@@ -137,7 +150,7 @@ export default class PullRequestReview {
                     await this.createReview(reviewMessage, ["Approved"], ["Pending"]);
                 }
             } else if (this.context.payload.review.state === "changes_requested") {
-                const reviewMessage = `@${this.context.payload.pull_request.user.login} your pull request has requested changes by \`[OWNER]\`@${this.context.payload.review.user.login}. Please address their comments before I'm merging this PR, thanks!`;
+                const reviewMessage = `@${this.context.payload.pull_request.user.login} pull request has requested changes by \`[OWNER]\`@${this.context.payload.review.user.login}. ${maintainers.join(", ")} please address their comments before I'm merging this PR, thanks!`;
                 if (this.context.payload.pull_request.labels.find((a) => a.name === "Approved")) {
                     await this.createReview(reviewMessage, ["Requested Changes"], ["Approved", "Pending"]);
                 } else {
@@ -153,7 +166,7 @@ export default class PullRequestReview {
                     await this.createReview(reviewMessage, ["Approved"], ["Pending"]);
                 }
             } else if (this.context.payload.review.state === "changes_requested") {
-                const reviewMessage = `Pull request has requested changes by \`[MAINTAINER]\`@${this.context.payload.review.user.login}. PING! @${this.context.payload.pull_request.user.login} Please address their comments before I"m merging this PR, thanks!`;
+                const reviewMessage = `Pull request has requested changes by \`[MAINTAINER]\`@${this.context.payload.review.user.login}. ${maintainers.join(", ")} please address their comments before I'm merging this PR, thanks!`;
                 if (this.context.payload.pull_request.labels.find((a) => a.name === "Approved")) {
                     await this.createReview(reviewMessage, ["Requested Changes"], ["Approved", "Pending"]);
                 } else {
@@ -170,7 +183,7 @@ export default class PullRequestReview {
                     await this.createReview(reviewMessage, ["Others Approved"], ["Pending"]);
                 }
             } else if (this.context.payload.review.state === "changes_requested") {
-                const reviewMessage = `Pull request has requested changes by @${this.context.payload.review.user.login}. PING! @${this.context.payload.pull_request.user.login} Please address their comments before I'm merging this PR, thanks!`;
+                const reviewMessage = `Pull request has requested changes by @${this.context.payload.review.user.login}. ${maintainers.join(", ")} please address their comments before I'm merging this PR, thanks!`;
                 if (this.context.payload.pull_request.labels.find((a) => a.name === "Others Approved")) {
                     await this.createReview(reviewMessage, ["Requested Changes"], ["Others Approved", "Pending"]);
                 } else {
