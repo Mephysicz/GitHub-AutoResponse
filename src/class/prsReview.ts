@@ -127,19 +127,20 @@ export default class PullRequestReview {
      * @returns {Promise<void>}
      */
     public async botPRs(): Promise<void> {
-        const maintainers:string[] = [];
-        await this.context.octokit.pulls.listReviews({
+        const maintainers: ReadonlyArray<string> = await this.context.octokit.pulls.listReviews({
             owner: this.context.payload.repository.owner.login,
             repo: this.context.payload.repository.name,
             pull_number: this.context.payload.pull_request.number
-        }).then((a) => {
-            a.data.forEach((data) => {
-                if (data.user?.login && !maintainers.includes(`@${data.user.login}`) && this.context.payload.review.user.login !== data.user.login && data.user.type.toLowerCase() !== "bot" && (data.author_association === "COLLABORATOR" || data.author_association === "MEMBER" || data.author_association === "OWNER")) {
-                    maintainers.push(`@${data.user.login}`);
-                }
+        }).then((response) => {
+            return response.data.filter((data) =>
+                data.user?.login &&
+                this.context.payload.review.user.login !== data.user.login &&
+                data.user.type.toLowerCase() !== "bot" &&
+                ["COLLABORATOR", "MEMBER", "OWNER"].includes(data.author_association)
+            ).map((data) => {
+                return `@${data.user?.login}`;
             });
         });
-
         if (this.context.payload.sender.login === this.context.payload.repository.owner.login) {
             // Owner
             if (this.context.payload.review.state === "approved") {
