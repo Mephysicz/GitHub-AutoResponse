@@ -157,8 +157,18 @@ export default class PullRequestOpen {
                 path: "tsconfig.json"
             }).then(async (res) => {
                 if ("content" in res.data) {
-                    const textContent:string = res.data.content;
-                    const decodeContent:string = Buffer.from(textContent, "base64").toString("utf-8");
+                    const textContent: string = res.data.content;
+                    const decodeContent: string = Buffer.from(textContent, "base64").toString("utf-8");
+
+                    const requiredRules = {
+                        noImplicitAny: "\"noImplicitAny\": true",
+                        noImplicitThis: "\"noImplicitThis\": true",
+                        strictFunctionTypes: "\"strictFunctionTypes\": true",
+                        strictNullChecks: "\"strictNullChecks\": true"
+                    };
+
+                    const missingRules = Object.values(requiredRules).filter((a) => !decodeContent.includes(a));
+
                     if (decodeContent.includes("\"noImplicitAny\": true") && decodeContent.includes("\"noImplicitThis\": true") && decodeContent.includes("\"strictFunctionTypes\": true") && decodeContent.includes("\"strictNullChecks\": true")) {
                         return;
                     } else {
@@ -168,7 +178,7 @@ export default class PullRequestOpen {
                             })
                         );
                         const configInvalid = this.context.issue({
-                            body: `[tsconfig](${res.data.html_url}) need [*noImplicitAny*, *noImplicitThis*, *strictFunctionTypes*, *strictNullChecks*] to true value`
+                            body: `[tsconfig](${res.data.html_url}) needs the following rules to be set to true: ${missingRules.join(", ")}`
                         });
                         await this.context.octokit.issues.createComment(configInvalid);
                     }
