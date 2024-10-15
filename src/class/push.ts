@@ -1,4 +1,4 @@
-import Context, { getEvent, getUserData, octokit, token } from "../index";
+import Context, { GetEvent, GetUserData, octokit, token } from "../index";
 
 /**
  * @class
@@ -34,7 +34,7 @@ export default class Push {
          * @returns {Promise<void>}
          */
         async function userActivity(): Promise<void> {
-            const arrayActivity: getUserData = { "userData": [] };
+            const arrayActivity: GetUserData = { "userData": [] };
             await fetch("https://api.github.com/users/Muunatic/events/public", {
                 method: "GET",
                 headers: {
@@ -44,7 +44,7 @@ export default class Push {
                 }
             }).then((res: Response) => {
                 return res.json();
-            }).then((res: [getEvent]) => {
+            }).then((res: [GetEvent]) => {
                 let i: number;
                 for (i = 0; i < res.length; i++) {
                     if (res[i].type === "PushEvent") {

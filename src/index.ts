@@ -3,7 +3,7 @@ import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 import { token } from "./data/config";
 import { IssuesClose, IssuesComment, IssuesOpen, PRsStale, PullRequestOpen, PullRequestReview, PullRequestSynchronize, Push, WorkflowCheck } from "./structures/constant";
-import { getEvent, getUserData } from "./structures/type";
+import { GetEvent, GetUserData } from "./structures/type";
 import "./structures/listener";
 import dotenv from "dotenv";
 dotenv.config();
@@ -114,4 +114,4 @@ setInterval(() => {
 
 export default Context;
 export { octokit, token };
-export type { getEvent, getUserData };
+export type { GetEvent, GetUserData };
