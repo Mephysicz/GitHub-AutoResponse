@@ -1,12 +1,12 @@
-export type getUserData = {
-    userData: userDataInterface[];
+export type GetUserData = {
+    userData: UserDataInterface[];
 }
 
-type userDataInterface = {
+type UserDataInterface = {
     event: string;
 }
 
-export type getEvent = {
+export type GetEvent = {
     id: string;
     type: string;
 
